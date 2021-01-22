@@ -1,0 +1,715 @@
+---
+title: "DA_5030_Practicum_1"
+author: "Gokul Narain Natarajan"
+Date: 10/16/2020
+output:
+  pdf_document: default
+---
+
+#DA 5030 - Practicum 1:
+
+# Problem 1:
+
+Q1: Download the data set Glass Identification Database (Links to an external site.) along with its explanation (Links to an external site.). Note that the data file does not contain header names; you may wish to add those. The description of each column can be found in the data set explanation. 
+
+### Imported the file into R and updated the column names based on the explanation document
+
+```{r}
+
+#importing the data file using read.csv
+df <- read.csv("C:/Users/Lenovo/Desktop/glass.data.txt",header = FALSE,stringsAsFactors = FALSE)
+df <- as.data.frame(df)
+head(df,3)
+
+# Changing the column names
+colnames(df) <- c("ID", "RI", "Na","Mg","Al","Si", "K", "Ca", "Ba", "Fe", "Type_Of_Glass")
+head(df,3)
+
+```
+
+Q2: Explore the data set to get a sense of the data and to get comfortable with it.
+
+### Exploring the dataset with each column, its variables and datatypes along with descriptive statistics
+
+```{r}
+# Str is used to see the number of observations and variables 
+str(df)
+
+# Summary is used to to the basic statistical details
+summary(df)
+
+```
+
+Q3: Create a histogram of column 2 (refractive index) and overlay a normal curve.
+
+### Historgram of RI and comparing the plot with the actual normal curve
+
+```{r}
+
+# Plotting the histogram of RI and overlaying the normal curve 
+hist(df$RI, prob=TRUE,col="light blue",main = "Histogram of RI", xlab="RI",ylab="Count",xlim = c(1.510,1.550), ylim = c(0,300))
+lines(sort(df$RI), dnorm(sort(df$RI), mean(df$RI), sd(df$RI)), col="red")
+
+```
+
+Q4:Test normality of column 2 by performing either a Shapiro-Wilk (tutorial (Links to an external site.)) or Kolmogorov-Smirnof test. Describe what you found.
+
+# Checking the Normality of RI
+
+```{r}
+
+#Using Shapiro test to verify the normality
+shapiro.test(df$RI)
+
+```
+
+### P-value = 0.000000000001077 which is NOT greater than 0.05 so the distribution of data is significantly different from normal distribution. The null hypothesis may be rejected because of this.
+
+Q5: Identify any outliers for the columns using a z-score deviation approach, i.e., consider any values that are more than 2 standard deviations from the mean as outliers. Which are your outliers for each column? What would you do? Summarize potential strategies in your notebook.
+
+### Finding the outliers using z-score and replacing the values with mean as for the contineous variables
+
+```{r}
+
+#To check if there is any missing values in the dataset
+length(df[is.na(df)])
+
+#Calculating the SD and mean of all the columns 
+#Checking the z-values greater than 2 and replacing it with mean
+#All are outliers is named with out_(column.name) 
+#Since all the columns are contineous varibles and based on the summary, the 
+  #- range is not too big so replacing with mean value
+
+#-----------------------------------
+sd_RI <- sd(df$RI)
+m_RI <- mean(df$RI)
+zs_RI <- ((df$RI-m_RI)/sd_RI)
+
+out_RI <- which(zs_RI>2)
+# out_RI
+df$RI[out_RI] <- m_RI
+
+#-----------------------------------
+  
+sd_Na <- sd(df$Na)
+m_Na <- mean(df$Na)
+zs_Na <- ((df$Na-m_Na)/sd_Na)
+
+out_Na <- which(zs_Na>2)
+# out_Na
+df$Na[out_Na] <- m_Na
+
+#-----------------------------------
+
+sd_Mg <- sd(df$Mg)
+m_Mg <- mean(df$Mg)
+zs_Mg <- ((df$Mg-m_Mg)/sd_Mg)
+
+out_Mg <- which(zs_Mg>2)
+# out_Mg
+df$Mg[out_Mg] <- m_Mg
+
+#-----------------------------------
+
+sd_Al <- sd(df$Al)
+m_Al <- mean(df$Al)
+zs_Al <- ((df$Al-m_Al)/sd_Al)
+
+out_Al <- which(zs_Al>2)
+# out_Al
+df$Al[out_Al] <- m_Al
+
+#-----------------------------------
+
+sd_Si <- sd(df$Si)
+m_Si <- mean(df$Si)
+zs_Si <- ((df$Si-m_Si)/sd_Si)
+
+out_Si <- which(zs_Si>2)
+# out_Si
+df$Si[out_Si] <- m_Si
+
+#-----------------------------------
+
+sd_K <- sd(df$K)
+m_K <- mean(df$K)
+zs_K <- ((df$K-m_K)/sd_K)
+
+out_K <- which(zs_K>2)
+# out_K
+df$K[out_K] <- m_K
+#-----------------------------------
+
+sd_Ca <- sd(df$Ca)
+m_Ca <- mean(df$Ca)
+zs_Ca <- abs((df$Ca-m_Ca)/sd_Ca)
+
+out_Ca <- which(zs_Ca>2)
+# m_Ca
+df$Ca[out_Ca] <- m_Ca
+#-----------------------------------
+
+sd_Ba <- sd(df$Ba)
+m_Ba <- mean(df$Ba)
+zs_Ba <- abs((df$Ba-m_Ba)/sd_Ba)
+
+out_Ba <- which(zs_Ba>2)
+# out_Ba
+df$Ba[out_Ba] <- m_Ba
+#-----------------------------------
+
+sd_Fe <- sd(df$Fe)
+m_Fe <- mean(df$Fe)
+zs_Fe <- abs((df$Fe-m_Fe)/sd_Fe)
+
+out_Fe <- which(zs_Fe>2)
+# out_Fe
+df$Fe[out_Fe] <- m_Fe
+#-----------------------------------
+
+summary(df)
+
+```
+
+Q6: After removing the ID column (column 1), standardize the scales of the numeric columns, except the last one (the glass type), using z-score standardization. The last column is the glass type and so it is excluded.
+
+### Created a function for Standardizing the data using z-score 
+
+```{r}
+
+df0 <- df
+
+#Removing the ID column
+df0 <- df0[-1]
+
+#Removing the Target variable
+df0 <- df0[-10]
+
+#Creating a function for data standardization 
+stand <- function(x)  
+{
+  return((x-mean(x))/(sd(x))) 
+}
+
+# Applying the function to the dataset
+head(df,3)
+df1 <- as.data.frame(lapply(df0,stand))
+
+head(df1,3)
+summary(df)
+summary(df1)
+
+df2 <- cbind(df1,df$Type_Of_Glass)
+colnames(df2)[10] <- "Type_Of_Glass" 
+head(df2,3)
+
+```
+
+Q7. The data set is sorted, so creating a validation data set requires random selection of elements. Create a stratified sample where you randomly select 15% of each of the cases for each glass type to be part of the validation data set. The remaining cases will form the training data set.
+
+### Dividing the dataset into 85 & 15 for training and testing datasets respectively.
+
+```{r}
+
+set.seed(089878)
+
+# Using sample function spliting the data based on each glass types
+
+#---------------------------------------------------------
+
+gt1 <- subset(df2,df2$Type_Of_Glass=="1")
+size_gl1 <- floor(0.15*nrow(gt1))
+col_gl1 <- sample(seq_len(nrow(gt1)), size=size_gl1)
+test_gt1 <- gt1[col_gl1,]
+train_gl1 <- gt1[-col_gl1,]
+
+#---------------------------------------------------------
+
+gt2 <- subset(df2,df2$Type_Of_Glass=="2")
+size_gt2 <- floor(0.15*nrow(gt2))
+col_gt2 <- sample(seq_len(nrow(gt2)), size=size_gt2)
+test_gt2 <- gt2[col_gt2,]
+train_gt2 <- gt2[-col_gt2,]
+
+#---------------------------------------------------------
+
+gt3 <- subset(df2,df2$Type_Of_Glass=="3")
+size_gt3 <- floor(0.15*nrow(gt3))
+col_gt3 <- sample(seq_len(nrow(gt3)), size=size_gt3)
+test_gt3 <- gt3[col_gt3,]
+train_gt3 <- gt3[-col_gt3,]
+
+#---------------------------------------------------------
+
+gt5 <- subset(df2,df2$Type_Of_Glass=="5")
+size_gt5 <- floor(0.15*nrow(gt5))
+col_gt5 <- sample(seq_len(nrow(gt5)), size=size_gt5)
+test_gt5 <- gt5[col_gt5,]
+train_gt5 <- gt5[-col_gt5,]
+
+#---------------------------------------------------------
+
+gt6 <- subset(df2,df2$Type_Of_Glass=="6")
+size_gt6 <- floor(0.15*nrow(gt6))
+col_gt6 <- sample(seq_len(nrow(gt6)), size=size_gt6)
+test_gt6 <- gt6[col_gt6,]
+train_gt6 <- gt6[-col_gt6,]
+
+#---------------------------------------------------------
+
+gt7 <- subset(df2,df2$Type_Of_Glass=="7")
+size_gt7 <- floor(0.15*nrow(gt7))
+col_gt7 <- sample(seq_len(nrow(gt7)), size=size_gt7)
+test_gt7 <- gt7[col_gt7,]
+train_gt7 <- gt7[-col_gt7,]
+
+#-------------------------------------------------------------------------------------
+
+# Getting the final train and test dataset using rbind function to join all the 
+# rows created for each type into one dataset
+
+set.seed(342234234)
+train_data_g <- rbind(train_gl1,train_gt2,train_gt3,train_gt5,train_gt6,train_gt7)
+train_data1_g <- train_data_g[,-10]
+head(train_data_g,3)
+head(train_data1_g,3)
+test_data_g <- rbind(test_gt1,test_gt2,test_gt3,test_gt5,test_gt6,test_gt7)
+test_data1_g <- test_data_g[,-10]
+head(test_data_g,3)
+head(test_data1_g,3)
+
+# Also used createDataPartition function from caret package to split the data
+  #-And it was easier compare to the above method
+# Since, I have alreay created the data using the above method, I did not disturb 
+  #- the setting
+
+# set.seed(243243)
+# install.packages("caret")
+# library(caret)
+# testing_data <- createDataPartition(df2,p=0.15,list = FALSE,times=1)
+# training_data <- df2[-testing_data]
+# head(testing_data,2)
+# head(training_data,2)
+```
+
+Q8. Implement the k-NN algorithm in R (do not use an implementation of k-NN from a package) and use your algorithm with a k=4 to predict the glass type for the following two cases:
+RI = 1.51621 | 12.52 | 3.48 | 1.39 | 73.39 | 0.60 | 8.55 | 0.00 | Fe = 0.07
+RI = 1.5793 | 12.69 | 1.86 | 1.82 | 72.62 | 0.52 | 10.52 | 0.00 | Fe = 0.05
+Use only the training data set. Note that you need to normalize the values of the new cases the same way as you normalized the original data.
+
+### kNN algorithm is created using the Eucliden distance formula and predicted the glass types for the given data
+
+```{r}
+
+#Creating a new dataset for the new cases
+unknown <- data.frame("RI"=c(1.51621,1.5793),"Na"=c(12.52,12.69), "Mg"=c(3.48,1.86), "Al"=c(1.39,1.82), "Si"=c(73.39,72.62), "K"= c(0.60,0.52), "Ca"=c(8.55,10.52), "Ba"=c(0.00,0.00), "Fe"=c(0.07,0.05) )
+
+#Standardizing the data using mean and sd of the population
+v1 <- (unknown$RI-mean(df0$RI))/sd(df0$RI)
+v2 <- (unknown$Na-mean(df0$Na))/sd(df0$Na)
+v3 <- (unknown$Mg-mean(df0$Mg))/sd(df0$Mg)
+v4 <- (unknown$Al-mean(df0$Al))/sd(df0$Al)
+v5 <- (unknown$Si-mean(df0$Si))/sd(df0$Si)
+v6 <- (unknown$K-mean(df0$K))/sd(df0$K)
+v7 <- (unknown$Ca-mean(df0$Ca))/sd(df0$Ca)
+v8 <- (unknown$Ba-mean(df0$Ba))/sd(df0$Ba)
+v9 <- (unknown$Fe-mean(df0$Fe))/sd(df0$Fe)
+
+unknown_1 <- data.frame(v1,v2,v3,v4,v5,v6,v7,v8,v9)
+colnames(unknown_1) <- c("RI", "Na","Mg","Al","Si", "K", "Ca", "Ba", "Fe")
+unknown_1
+
+#One of the values of RI seems to be outlier as it is too high so imputing the 
+  #- the mean value of the population
+unknown_1[2,1] <- mean(df0$RI)
+unknown_1
+
+```
+
+```{r}
+
+#Creating function for Euclidean distance
+distance <- function(p,q)
+{  
+  
+  #Make the training and testing same number of rows
+  if(nrow(p)>nrow(q))
+  {
+    p <- p[1:nrow(q),]
+    len <- length(p)
+  }
+  else  
+  {
+    q <- q[1:nrow(p),]
+    len <- length(q)
+  }
+  
+  d <- 0
+  
+  for (i in 1:len) 
+  {
+  
+    d <- d+(p[i]-q[i])^2  
+    
+  }
+  
+  dis <- sqrt(d) 
+  return(dis)
+}
+
+```
+
+***<p style="color:red">If the data is used directly in the above function, I am getting an error stating - "‘-’ only defined for equally-sized data frames"</p>***
+
+```{r}
+
+#Creating function for calculating distance for the given datasets
+neighbors <- function(a,b)
+  {
+    m <- nrow(a)
+    ds <- numeric(m)
+    for (i in 1:m) 
+      {
+        p <- a[i,1:9]
+        q <- b[c(1:9)]
+        ds[i] <- distance(p,q)
+    }
+    ds
+    return(unlist(ds))
+}
+
+```
+
+```{r}
+
+#Creating function for finding the k closest neighbors
+k.closest <- function(ne,k)
+  {
+    ordered.neighbors <- order(ne)
+    k.closest <- ordered.neighbors[1:k]
+  }
+
+```
+
+```{r}
+
+#Finding the most number of occurrence of the target using mode
+Mode <- function(x) 
+  {
+    ux <- unique(x)
+    ux[which.max(tabulate(match(x, ux)))]
+  }
+
+```
+
+```{r}
+
+#Creating function for kNN and predicting the type of glass that each dataset belongs to
+kn1 <- function(Tr,Ts,k)
+  {
+    nb <- neighbors(Tr, Ts)
+    nb
+    nb1 <- as.data.frame(lapply(nb, unlist))
+    f <- k.closest(nb1,k)
+    kn <- Mode(df$Type_Of_Glass[f])
+  }
+nn_1_pred <- kn1(train_data1_g,unknown_1[1,],4)
+# nn_1_pred
+message("The 1st dataset have the glass type = ", nn_1_pred)
+nn_2_pred <- kn1(train_data1_g,unknown_1[2,],4)
+# nn_2_pred
+message("The 2nd dataset have the glass type = ", nn_2_pred)
+
+```
+
+
+Q9. Apply the knn function from the class package with k=4 and redo the cases from Question (8). Compare your answers.
+
+### Predicting the glass type for the given data using the kNN funciton from the class package for k=4
+
+```{r}
+
+# install.packages("class") #Installing the class package
+library(class) #Loading the class library
+
+data_train_tar1 <- train_data_g[,10]
+
+#Applying kNN from class package 
+
+model_predict <- class::knn(train=train_data1_g, test=unknown_1, cl=data_train_tar1, k=4) 
+model_predict
+
+```
+## Comparing the results from Euclidean distance and kNN function from class package - 1st and 2nd dataset have the same result of glass type - "1" and "2" respectively. 
+
+
+Q10. Using kNN from the class package, create a plot of k (x-axis) from 2 to 8 versus accuracy (percentage of correct classifications) using ggplot.
+
+### Plotting a graph between k-value and accuracy of the model using ggplot 
+
+```{r}
+
+set.seed(9098977)
+train_data1 <- train_data1_g
+test_data1 <- test_data1_g
+
+#Applying kNN with differnt k values from 2 to 8
+
+model_predict2 <- class::knn(train=train_data1, test=test_data1, cl=data_train_tar1, k=2) 
+model_predict2
+model_predict3 <- class::knn(train=train_data1, test=test_data1, cl=data_train_tar1, k=3) 
+model_predict3
+model_predict4 <- class::knn(train=train_data1, test=test_data1, cl=data_train_tar1, k=4) 
+model_predict4
+model_predict5 <- class::knn(train=train_data1, test=test_data1, cl=data_train_tar1, k=5) 
+model_predict5
+model_predict6 <- class::knn(train=train_data1, test=test_data1, cl=data_train_tar1, k=6) 
+model_predict6
+model_predict7 <- class::knn(train=train_data1, test=test_data1, cl=data_train_tar1, k=7) 
+model_predict7
+model_predict8 <- class::knn(train=train_data1, test=test_data1, cl=data_train_tar1, k=8) 
+model_predict8
+
+#Finding the accuracy of the above models
+
+acc.2 <- sum(test_data_g$Type_Of_Glass==model_predict2)/nrow(test_data_g)
+a2 <- acc.2*100
+a2
+acc.3 <- sum(test_data_g$Type_Of_Glass==model_predict3)/nrow(test_data_g)
+a3 <- acc.3*100
+a3
+acc.4 <- sum(test_data_g$Type_Of_Glass==model_predict4)/nrow(test_data_g)
+a4 <- acc.4*100
+a4
+acc.5 <- sum(test_data_g$Type_Of_Glass==model_predict5)/nrow(test_data_g)
+a5 <- acc.5*100
+a5
+acc.6 <- sum(test_data_g$Type_Of_Glass==model_predict6)/nrow(test_data_g)
+a6 <- acc.6*100
+a6
+acc.7 <- sum(test_data_g$Type_Of_Glass==model_predict7)/nrow(test_data_g)
+a7 <- acc.7*100
+a7
+acc.8 <- sum(test_data_g$Type_Of_Glass==model_predict8)/nrow(test_data_g)
+a8 <- acc.2*100
+a8
+
+```
+
+```{r}
+#Creating new datasets for plotting
+kpred <- c(2:8)
+acc_models <- c(a2,a3,a4,a5,a6,a7,a8)
+
+#Plotting the graph between k values and acccuracy
+library(ggplot2)
+forplot <- data.frame(kpred,acc_models)
+forplot
+ggplot(forplot, aes(x=kpred, y=acc_models))+geom_line(color="red")+
+ggtitle("K-value Vs Model accuracy")+xlab("K-values")+ylab("Model Accuracy")+
+theme(plot.title = element_text(hjust = 0.5))+geom_point(size=4) 
+```
+
+## Based on the graph generated, k=6 and 7 has the least accuracy and k=4 and 5 have the highest accuracy
+
+## Note: Faced many errors in knitting the solution to PDF so the problem 1.11 is moved to the last page
+
+
+#Problem 2:
+
+Q1. Investigate this data set of home prices in King County (USA) (Links to an external site.)
+
+### Importing the dataset and exploring it
+
+```{r}
+
+#Importing the dataset
+n_df_h <- read.csv("C:/Users/Lenovo/Desktop/house.csv",header = TRUE)
+head(n_df_h, 3)
+
+#Exploring the stastical details, observations and the datatypes using str and summary functions
+summary(n_df_h)
+str(n_df_h)
+
+```
+
+Q2. Save the price column in a separate vector/dataframe called target_data. Move all of the columns except the ID, date, price, yr_renovated, zipcode, lat, long, sqft_living15, and sqft_lot15 columns into a new data frame called train_data.
+
+### Creating the target data file and training dataset
+
+```{r}
+
+#Creating separate dataframe for price
+target_data <- n_df_h$price
+
+#Creating training dataset
+colnames(n_df_h[ ,c(1, 2, 3, 16, 17, 18, 19, 20, 21)])
+train_data <- n_df_h[,-c(1, 2, 3, 16, 17, 18, 19, 20, 21)]
+summary(train_data)
+head(train_data,3)
+
+```
+
+
+Q3. Normalize all of the columns (except the boolean columns waterfront and view) using min-max normalization.
+
+### Creating function for min-max normalization
+
+```{r}
+
+norm <- function(x)   #Creating a function
+{
+  return((x-min(x))/(max(x)-min(x)))  #return the standardized value for 
+                                      #any given vector
+}
+
+#Applying the normalization function for the training data
+train_data_h <- as.data.frame(lapply(train_data[,-c(6,7)],norm))
+summary(train_data)
+summary(train_data_h)
+
+```
+
+Q4. Build a function called knn.reg that implements a regression version of kNN that averages the prices of the k nearest neighbors using a weighted average where the weight is 4 for the closest neighbor, 2 for the second closest and 1 for the remaining neighbors (recall that a weighted average requires that you divide the sum product of the weight and values by the sum of the weights).
+
+It must use the following signature:
+
+knn.reg (new_data, target_data, train_data, k)
+
+Where new_data is a data frame with new cases, target_data is a data frame with a single column of prices from (2), train_data is a data frame with the features from (2) that correspond to a price in target_data, and k is the number of nearest neighbors to consider. It must return the predicted price.
+
+### Created kNN.reg function to predict the weighted average result for any given parameters
+
+```{r}
+
+#Creating function for weighted average
+#From class - Prof's input
+w.avg <- function (d, w)
+{
+  sum.weights <- sum(w)
+  sum.prod <- sum(w*d)   
+  w.avg <- sum.prod / sum.weights
+}
+
+```
+
+```{r}
+
+#Creating kNN.reg function for calculation in weighted average method
+knn.reg <- function(new_data,target_data,train_data,k)
+{
+  a1_h <- neighbors(train_data,new_data)
+  ordered.a1_h <- order(a1_h)
+  ordered.a1_h <- head(ordered.a1_h,k)
+  new_price <- target_data[c(ordered.a1_h),]
+  # k_h = length(ordered.a1_h1)
+  w <- 1:k; 
+  w[1] <- 4
+  w[2] <- 2 
+  if(k>=3)
+  {
+  w[3:k] <- 1 
+  }
+  
+  weighted.avg <- w.avg(new_price,w) 
+  weighted.avg
+}
+
+```
+
+Q.5: Forecast the price of this new home using your regression kNN using k = 4:
+bedrooms = 4 | bathrooms = 3 | sqft_living = 4852 | sqft_lot = 11245 | floors = 3 | waterfront = 1 | view = 1 | condition = 3 | grade = 11 | sqft_above = 2270 | sqft_basement = 820 | yr_built = 1986
+
+### Predicting the house price using the kNN.reg function created in the quesion 2.4.
+
+```{r}
+
+#Creating the new data from the data given in the question
+new_data <- data.frame("bedrooms"= 4, "bathrooms"= 3, "sqft_living"= 4852,
+"sqft_lot"= 11245, "floors"= 3, "waterfront"= 1, "view"= 1, "condition"= 3,
+"grade"= 11, "sqft_above"= 2270, "sqft_basement"= 820, "yr_built"= 1986)
+
+#Standardizing the data using z-score normalization method for each column
+v11 <- (new_data$bedrooms-mean(train_data$bedrooms))/sd(train_data$bedrooms)
+v12 <- (new_data$bathrooms-mean(train_data$bathrooms))/sd(train_data$bathrooms)
+v13 <- (new_data$sqft_living-mean(train_data$sqft_living))/sd(train_data$sqft_living)
+v14 <- (new_data$sqft_lot-mean(train_data$sqft_lot))/sd(train_data$sqft_lot)
+v15 <- (new_data$floors-mean(train_data$floors))/sd(train_data$floors)
+v16 <- (new_data$condition-mean(train_data$condition))/sd(train_data$condition)
+v17 <- (new_data$grade-mean(train_data$grade))/sd(train_data$grade)
+v18 <- (new_data$sqft_above-mean(train_data$sqft_above))/sd(train_data$sqft_above)
+v19 <- (new_data$sqft_basement-mean(train_data$sqft_basement))/sd(train_data$sqft_basement)
+v20 <- (new_data$yr_built-mean(train_data$yr_built))/sd(train_data$yr_built)
+
+#Joining all the standardized data into one dataframe
+new_data_h <- data.frame(v11,v12,v13,v14,v15,new_data$waterfront,new_data$view,v16,v17,v18,v19,v20)
+colnames(new_data_h) <- c("bedrooms", "bathrooms","sqft_living","sqft_lot","floors", 
+"waterfront", "view", "condition", "grade","sqft_above","sqft_basement","yr_built")
+head(new_data_h,3)
+
+#Creating target data set 
+target_data <- data.frame(target_data)
+colnames(target_data) <- "price"
+
+#Predicting the house price using the kNN.reg function with k=4 as given in the question
+qwe <- knn.reg(new_data_h,target_data,train_data_h,4)
+message("The predicted value of the house is $", qwe)
+```
+
+### Since I am getting knitting error, I have moved the Q11 from prob 1 to last page 
+
+Q11.Download this (modified) version of the Glass data set  (Links to an external site.)containing missing values in column 4. Identify the missing values. Impute the missing values of this continuous numeric column using your regression version of kNN from Problem 2 below using the other columns are predictor features.
+
+### Using the kNN.reg function created in prob 2.4, we are predicting the missing value and imputing it.
+
+```{r}
+
+#Importing the new dataset
+n_df_vi <- read.csv("C:/Users/Lenovo/Desktop/modified_df.csv",header = FALSE)
+colnames(n_df_vi) <- c("ID", "RI", "Na","Mg","Al","Si", "K", "Ca", "Ba", "Fe", "Type_Of_Glass")
+head(n_df_vi,3)
+imp_val_df <- n_df_vi
+
+#Standardizing the categorical variable using dummies package and created separate 
+#columns for each category and imputed binary values 
+
+# install.packages("dummies")
+library(dummies)
+n_df <- dummy.data.frame(n_df_vi,names="Type_Of_Glass", sep=" ")
+
+#Check if there are any missing values in the dataset
+length(n_df[is.na(n_df)])
+which(is.na(n_df$Mg))
+summary(n_df$Mg)
+
+#Generating training and testing data
+train_data_11 <- n_df
+train_data_11 <- na.omit(train_data_11$Mg)
+train_data_11 <- data.frame(train_data_11)
+colnames(train_data_11) <- "Mg"
+train_data_11.0 <- na.omit(n_df)
+train_data_11.0 <- train_data_11.0[-1]
+train_data_11.0 <- as.data.frame(lapply(train_data_11.0,norm))
+train_data_11.0 <- train_data_11.0[-3]
+target_data_11 <- train_data_11
+
+#Generating the new dataset with rows that contains missing values
+new_data_11 <- n_df[c(which(is.na(n_df$Mg))),]
+new_data_11<- new_data_11[-1]
+new_data_11<- new_data_11[-3]
+new_data_11 <- as.data.frame(lapply(new_data_11,norm))
+
+#Calculating the k value as sq root of the no of rows of dataset
+k <- round(sqrt(nrow(n_df)))
+
+#Applying the function created in 2.4 and predicting the missing value
+qwww <- knn.reg(new_data_11,target_data_11,train_data_11.0,k)
+message("The mising value for Mg generated from kNN.reg function is ", qwww)
+
+#Imputing the value generated from the above function to dataset
+imp_val_df$Mg[which(is.na(imp_val_df$Mg))] <- qwww
+
+#Checking if there are any missing values in the dataset after imputation
+length(imp_val_df[is.na(imp_val_df)])
+
+```
